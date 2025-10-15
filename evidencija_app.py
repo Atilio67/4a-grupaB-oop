@@ -22,7 +22,7 @@ class EvidencijaApp:
         self.root.rowconfigure(1, weight=1)
         
         self.učenici = []
-        self.odabrani_učenik_index=None
+        self.odabrani_Učenik_index=None
         # --- Okviri (Frames) za organizaciju ---
         # Okvir za formu (unos)
         unos_frame = tk.Frame(self.root, padx=10, pady=10)
@@ -47,9 +47,10 @@ class EvidencijaApp:
         self.razred_entry = tk.Entry(unos_frame)
         self.razred_entry.grid(row=2, column=1, padx=5, pady=5, sticky="EW")
         # Gumbi
-        self.dodaj_gumb = tk.Button(unos_frame, text="Dodaj učenika")
+        self.dodaj_gumb = tk.Button(unos_frame, text="Dodaj učenika", command=self.dodaj_učenika)
         self.dodaj_gumb.grid(row=3, column=0, padx=5, pady=10)
-        self.spremi_gumb = tk.Button(unos_frame, text="Spremi izmjene")
+        self.spremi_gumb = tk.Button(unos_frame, text="Spremi izmjene", command=self.spremi_izmjene)
+        
         self.spremi_gumb.grid(row=3, column=1, padx=5, pady=10, sticky="W")
         # --- Widgeti za prikaz (NOVO GRADIVO: Listbox) ---
         self.listbox = tk.Listbox(prikaz_frame)
@@ -57,37 +58,77 @@ class EvidencijaApp:
         # Scrollbar za listbox
         scrollbar = tk.Scrollbar(prikaz_frame, orient="vertical", command=self.listbox.yview)
         scrollbar.grid(row=0, column=1, sticky="NS")
-        self.listbox.config(yscrollcommand=scrollbar.set)
+        self.listbox.config(yscrollcommand=scrollbar.set)
 
-        
-        self.listbox = tk.Listbox(root)
-        self.listbox.pack(padx=10, pady=10, fill="both", expand=True)
+
+    
 
         # Povezivanje događaja odabira s našom metodom
-        self.listbox.bind('<<ListboxSelect>>', self.artikl_odabran)
+        self.listbox.bind('<<ListboxSelect>>', self.odaberi_učenika)
+        self.info_label = tk.Label(prikaz_frame, anchor='w')
+        self.info_label.grid(row=1, column=0, columnspan=2, sticky='EW', pady=(8,0))
 
-        self.info_label = tk.Label(root, text="Odaberite artikl")
-        self.info_label.pack(pady=5)
-        
     def dodaj_učenika(self):
+        ime = self.ime_entry.get().strip()
+        prezime = self.prezime_entry.get().strip()
+        razred = self.razred_entry.get().strip()
+        if not(ime and prezime and razred):
+            return
+        self.učenici.append(Učenik(ime, prezime, razred))
+        self.osvježi_listu()
+        self.očisti_polja()
+        
+
+    def osvježi_listu(self):
         # Brisanje postojećih stavki
         self.listbox.delete(0, tk.END)
         # Dodavanje novih stavki
-        for Učenik in self.učenici:
-            self.listbox.insert(tk.END, Učenik)
-         self.osvjezi_listu()
+        for u in self.učenici:
+            self.listbox.insert(tk.END, str(Učenik))
 
-    def odabrani_učenik_indeks(self, event):
+
+    def odaberi_učenika(self, event):
         # Dohvaćanje indeksa odabrane stavke
-        odabrani_indeksi = self.listbox.curselection()
-        if not odabrani_indeksi: # Ako ništa nije odabrano, izađi
+        odabrani_Učenik_index = self.listbox.curselection()
+        if not odabrani_Učenik_index: # Ako ništa nije odabrano, izađi
             return
-        
-        odabrani_index = odabrani_indeksi[0]
-        odabrani_Učenik = self.učenici[odabrani_index]
+
+        odabrani_učenik_index = odabrani_učenik_index[0]
+        self.odabrani_učenik_index = odabrani_učenik_index
+        Učenik = self.učenici[odabrani_učenik_index]
+
+        u=self.učenici[odabrani_učenik_index]
+        self.ime_entry.delete(0, tk.END)
+        self.ime_entry.insert(0, Učenik.ime)
+        self.prezime_entry.delete(0, tk.END)
+        self.prezime_entry.insert(0, Učenik.prezime)
+        self.razred_entry.delete(0, tk.END)
+        self.razred_entry.insert(0, Učenik.razred)
         
         # Prikaz informacije o odabranom artiklu
-        self.info_label.config(text=f"Odabrali ste: {odabrani_artikl}")
+        self.info_label.config(text=f"Odabrali ste: {Učenik}")
+        
+
+    def spremi_izmjene(self):
+        if self.odabrani_učenik_index is None:
+            return
+        ime = self.ime_entry.get().strip()
+        prezime = self.prezime_entry_get().strip()
+        razred = self.razred_entry_get().strip()
+        if not(ime and prezime and razred):
+            return
+        u = self.učenici[self.odrabrani_učenici_index]
+        u.ime, u.prezime, u.razred = ime, prezime, razred
+        self.osvježi_listu()
+        self.očisti_listu()
+        self.info_label(text='Izmjene su spremljene')
+        self.odabrani_učenik_index=None
+
+    def očisti_polja(self):
+        self.ime_entry.delete(0, tk.END)
+        self.prezime_entry.delete(0, tk.END)
+        self.razred_entry.delete(0, tk.END)
+        
 # Pokretanje primjera
 if __name__ == "__main__":
      root = tk.Tk()
