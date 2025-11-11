@@ -3,9 +3,6 @@ from tkinter import ttk, messagebox
 import pickle
 from datetime import datetime
 
-# ---------------------------
-# MODEL KLASA
-# ---------------------------
 
 class Jelo:
     def __init__(self, naziv, cijena, alergeni):
@@ -43,9 +40,6 @@ class Narudzba:
         return f"{self.datum} | {self.ucenik} - {self.jelo.naziv} ({self.jelo.cijena:.2f} €)"
 
 
-# ---------------------------
-# GLAVNA APLIKACIJA (GUI)
-# ---------------------------
 
 class MenzaApp:
     def __init__(self, root):
@@ -66,9 +60,6 @@ class MenzaApp:
         self.create_jelovnik_tab()
         self.create_narudzbe_tab()
 
-    # ---------------------------
-    # TAB 1 – JELOVNIK
-    # ---------------------------
     def create_jelovnik_tab(self):
         frame_unos = ttk.LabelFrame(self.tab_jelovnik, text="Unos novog jela")
         frame_unos.pack(padx=10, pady=10, fill="x")
@@ -157,9 +148,7 @@ class MenzaApp:
         except FileNotFoundError:
             messagebox.showwarning("Upozorenje", "Datoteka jelovnik.pkl ne postoji.")
 
-    # ---------------------------
-    # TAB 2 – NARUDŽBE
-    # ---------------------------
+
     def create_narudzbe_tab(self):
         frame_unos = ttk.LabelFrame(self.tab_narudzbe, text="Unos narudžbe")
         frame_unos.pack(padx=10, pady=10, fill="x")
@@ -250,9 +239,7 @@ class MenzaApp:
             messagebox.showwarning("Upozorenje", "Datoteka narudzbe.pkl ne postoji.")
 
 
-# ---------------------------
-# POKRETANJE APLIKACIJE
-# ---------------------------
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = MenzaApp(root)
