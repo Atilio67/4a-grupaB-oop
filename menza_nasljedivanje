@@ -1,0 +1,230 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+import pickle
+import uuid
+from datetime import datetime
+from collections import Counter
+
+
+class Jelo:
+    def __init__(self, naziv, cijena, alergeni):
+        self.id = str(uuid.uuid4())
+        self.naziv = naziv
+        self.cijena = float(cijena)
+        self.alergeni = alergeni
+
+class StandardnoJelo(Jelo):
+    def __init__(self, naziv, cijena, alergeni):
+        super().__init__(naziv, cijena, alergeni)
+        self.tip = "Standardno"
+
+class VegetarijanskoJelo(Jelo):
+    def __init__(self, naziv, cijena, alergeni, napomena):
+        super().__init__(naziv, cijena, alergeni)
+        self.tip = "Vegetarijansko"
+        self.napomena = napomena
+
+class Narudzba:
+    def __init__(self, datum, jelo, ucenik):
+        self.id = str(uuid.uuid4())
+        self.datum = datum
+        self.jelo_id = jelo.id
+        self.jelo_naziv = jelo.naziv
+        self.cijena = jelo.cijena
+        self.ucenik = ucenik
+
+
+class MenzaApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Menza – Evidencija jelovnika i narudžbi")
+        self.root.geometry("950x600")
+
+        self.jelovnik = []
+        self.narudzbe = []
+
+        self.style()
+        self.gui()
+
+    def style(self):
+        style = ttk.Style()
+        style.theme_use("default")
+
+        style.configure(
+            "Card.TLabelframe",
+            background="#f5f7fa",
+            bordercolor="#4a90e2",
+            borderwidth=2
+        )
+
+        style.configure(
+            "Card.TLabelframe.Label",
+            background="#f5f7fa",
+            foreground="#2c3e50",
+            font=("Segoe UI", 10, "bold")
+        )
+
+    def gui(self):
+        notebook = ttk.Notebook(self.root)
+        notebook.pack(fill="both", expand=True)
+
+        self.tab_jelovnik = ttk.Frame(notebook)
+        self.tab_narudzbe = ttk.Frame(notebook)
+
+        notebook.add(self.tab_jelovnik, text="Jelovnik")
+        notebook.add(self.tab_narudzbe, text="Narudžbe")
+
+        self.gui_jelovnik()
+        self.gui_narudzbe()
+
+    def gui_jelovnik(self):
+        frame = ttk.LabelFrame(self.tab_jelovnik, text="Unos jela", style="Card.TLabelframe")
+        frame.pack(fill="x", padx=10, pady=10)
+
+        ttk.Label(frame, text="Naziv").grid(row=0, column=0)
+        ttk.Label(frame, text="Cijena").grid(row=0, column=1)
+        ttk.Label(frame, text="Alergeni").grid(row=0, column=2)
+        ttk.Label(frame, text="Tip").grid(row=0, column=3)
+        ttk.Label(frame, text="Napomena").grid(row=0, column=4)
+
+        self.naziv = ttk.Entry(frame)
+        self.cijena = ttk.Entry(frame)
+        self.alergeni = ttk.Entry(frame)
+        self.tip = ttk.Combobox(frame, values=["Standardno", "Vegetarijansko"], state="readonly")
+        self.napomena = ttk.Entry(frame)
+
+        self.naziv.grid(row=1, column=0)
+        self.cijena.grid(row=1, column=1)
+        self.alergeni.grid(row=1, column=2)
+        self.tip.grid(row=1, column=3)
+        self.napomena.grid(row=1, column=4)
+
+        ttk.Button(frame, text="Dodaj jelo", command=self.dodaj_jelo).grid(row=1, column=5, padx=5)
+
+        # Treeview
+        self.tree_jela = ttk.Treeview(
+            self.tab_jelovnik,
+            columns=("naziv", "cijena", "tip"),
+            show="headings"
+        )
+        self.tree_jela.heading("naziv", text="Naziv")
+        self.tree_jela.heading("cijena", text="Cijena (€)")
+        self.tree_jela.heading("tip", text="Tip")
+        self.tree_jela.pack(fill="both", expand=True, padx=10, pady=10)
+
+        btn_frame = ttk.Frame(self.tab_jelovnik)
+        btn_frame.pack(pady=5)
+        ttk.Button(btn_frame, text="Obriši", command=self.obrisi_jelo).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Spremi", command=self.spremi_jelovnik).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="Učitaj", command=self.ucitaj_jelovnik).pack(side="left", padx=5)
+
+    def dodaj_jelo(self):
+        try:
+            if self.tip.get() == "Standardno":
+                j = StandardnoJelo(self.naziv.get(), self.cijena.get(), self.alergeni.get())
+            else:
+                j = VegetarijanskoJelo(self.naziv.get(), self.cijena.get(), self.alergeni.get(), self.napomena.get())
+            self.jelovnik.append(j)
+            self.osvjezi_jela()
+        except:
+            messagebox.showerror("Greška", "Provjeri unos!")
+
+    def osvjezi_jela(self):
+        self.tree_jela.delete(*self.tree_jela.get_children())
+        for j in self.jelovnik:
+            self.tree_jela.insert("", "end", iid=j.id, values=(j.naziv, j.cijena, j.tip))
+        self.osvjezi_combobox()
+
+    def obrisi_jelo(self):
+        sel = self.tree_jela.selection()
+        if not sel:
+            return
+        jid = sel[0]
+        self.jelovnik = [j for j in self.jelovnik if j.id != jid]
+        self.osvjezi_jela()
+
+    def gui_narudzbe(self):
+        frame = ttk.LabelFrame(self.tab_narudzbe, text="Unos narudžbe", style="Card.TLabelframe")
+        frame.pack(fill="x", padx=10, pady=10)
+
+        ttk.Label(frame, text="Datum (YYYY-MM-DD)").grid(row=0, column=0)
+        ttk.Label(frame, text="Jelo").grid(row=0, column=1)
+        ttk.Label(frame, text="Učenik").grid(row=0, column=2)
+
+        self.datum = ttk.Entry(frame)
+        self.combo_jelo = ttk.Combobox(frame, state="readonly")
+        self.ucenik = ttk.Entry(frame)
+
+        self.datum.grid(row=1, column=0)
+        self.combo_jelo.grid(row=1, column=1)
+        self.ucenik.grid(row=1, column=2)
+
+        ttk.Button(frame, text="Dodaj", command=self.dodaj_narudzbu).grid(row=1, column=3, padx=5)
+
+        self.tree_narudzbe = ttk.Treeview(
+            self.tab_narudzbe,
+            columns=("datum", "ucenik", "jelo", "cijena"),
+            show="headings"
+        )
+        for col in ("datum", "ucenik", "jelo", "cijena"):
+            self.tree_narudzbe.heading(col, text=col.capitalize())
+        self.tree_narudzbe.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Izvještaj
+        report = ttk.LabelFrame(self.tab_narudzbe, text="Dnevni izvještaj", style="Card.TLabelframe")
+        report.pack(fill="x", padx=10, pady=10)
+
+        ttk.Label(report, text="Datum").pack(side="left")
+        self.report_date = ttk.Entry(report)
+        self.report_date.pack(side="left", padx=5)
+        ttk.Button(report, text="Izračunaj", command=self.izvjestaj).pack(side="left", padx=5)
+
+        self.report_label = ttk.Label(report, text="")
+        self.report_label.pack(side="left", padx=10)
+
+    def dodaj_narudzbu(self):
+        try:
+            datetime.strptime(self.datum.get(), "%Y-%m-%d")
+            jelo = next(j for j in self.jelovnik if j.naziv == self.combo_jelo.get())
+            n = Narudzba(self.datum.get(), jelo, self.ucenik.get())
+            self.narudzbe.append(n)
+            self.osvjezi_narudzbe()
+        except:
+            messagebox.showerror("Greška", "Neispravan unos!")
+
+    def osvjezi_narudzbe(self):
+        self.tree_narudzbe.delete(*self.tree_narudzbe.get_children())
+        for n in self.narudzbe:
+            self.tree_narudzbe.insert("", "end", iid=n.id,
+                                      values=(n.datum, n.ucenik, n.jelo_naziv, n.cijena))
+
+    def izvjestaj(self):
+        datum = self.report_date.get()
+        dnevne = [n for n in self.narudzbe if n.datum == datum]
+        prihod = sum(n.cijena for n in dnevne)
+        brojac = Counter(n.jelo_naziv for n in dnevne)
+
+        tekst = f"Prihod: {prihod:.2f} € | "
+        tekst += ", ".join(f"{k}: {v}" for k, v in brojac.items())
+        self.report_label.config(text=tekst)
+
+    def osvjezi_combobox(self):
+        self.combo_jelo["values"] = [j.naziv for j in self.jelovnik]
+
+    def spremi_jelovnik(self):
+        with open("jelovnik.pkl", "wb") as f:
+            pickle.dump(self.jelovnik, f)
+
+    def ucitaj_jelovnik(self):
+        try:
+            with open("jelovnik.pkl", "rb") as f:
+                self.jelovnik = pickle.load(f)
+            self.osvjezi_jela()
+        except:
+            pass
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    MenzaApp(root)
+    root.mainloop()
+
