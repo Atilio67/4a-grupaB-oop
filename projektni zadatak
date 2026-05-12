@@ -1,0 +1,222 @@
+# Fitness aplikacija u Pythonu (Tkinter GUI)
+
+
+import tkinter as tk
+
+
+class Vjezba:
+    def __init__(self, naziv, misicna_skupina, ponavljanja):
+        self.naziv = naziv
+        self.misicna_skupina = misicna_skupina
+        self.ponavljanja = ponavljanja
+
+    def prikazi(self):
+        return f"- {self.naziv} ({self.ponavljanja})"
+
+
+class Trening:
+    def __init__(self):
+
+        self.vjezbe = {
+
+            "prsa": [
+                Vjezba("Bench Press", "Prsa", "4x10"),
+                Vjezba("Incline Bench Press", "Prsa", "4x8"),
+                Vjezba("Chest Fly", "Prsa", "3x12"),
+                Vjezba("Sklekovi", "Prsa", "3x15"),
+                Vjezba("Cable Fly", "Prsa", "3x12"),
+                Vjezba("Decline Bench Press", "Prsa", "3x10")
+            ],
+
+            "leđa": [
+                Vjezba("Mrtvo dizanje", "Leđa", "4x8"),
+                Vjezba("Zgibovi", "Leđa", "3x10"),
+                Vjezba("Lat Pulldown", "Leđa", "3x12"),
+                Vjezba("Barbell Row", "Leđa", "4x10"),
+                Vjezba("Seated Cable Row", "Leđa", "3x12"),
+                Vjezba("T-Bar Row", "Leđa", "3x10")
+            ],
+
+            "noge": [
+                Vjezba("Cucnjevi", "Noge", "4x10"),
+                Vjezba("Leg Press", "Noge", "4x12"),
+                Vjezba("Iskoraci", "Noge", "3x12"),
+                Vjezba("Rumunjsko mrtvo dizanje", "Noge", "4x10"),
+                Vjezba("Leg Curl", "Noge", "3x15"),
+                Vjezba("Calf Raises", "Noge", "4x20")
+            ],
+
+            "ramena": [
+                Vjezba("Shoulder Press", "Ramena", "4x10"),
+                Vjezba("Lateral Raise", "Ramena", "3x12"),
+                Vjezba("Front Raise", "Ramena", "3x12"),
+                Vjezba("Arnold Press", "Ramena", "4x10"),
+                Vjezba("Rear Delt Fly", "Ramena", "3x15"),
+                Vjezba("Upright Row", "Ramena", "3x12")
+            ],
+
+            "ruke": [
+                Vjezba("Biceps Curl", "Ruke", "3x12"),
+                Vjezba("Hammer Curl", "Ruke", "3x10"),
+                Vjezba("Preacher Curl", "Ruke", "3x12"),
+                Vjezba("Triceps Pushdown", "Ruke", "3x12"),
+                Vjezba("Dips", "Ruke", "3x15"),
+                Vjezba("Overhead Triceps Extension", "Ruke", "3x12")
+            ],
+
+            "trbuh": [
+                Vjezba("Crunches", "Trbuh", "3x20"),
+                Vjezba("Plank", "Trbuh", "3x60 sek"),
+                Vjezba("Leg Raises", "Trbuh", "3x15"),
+                Vjezba("Russian Twist", "Trbuh", "3x20"),
+                Vjezba("Mountain Climbers", "Trbuh", "3x30 sek"),
+                Vjezba("Bicycle Crunch", "Trbuh", "3x20")
+            ],
+            "kardio": [
+                Vjezba("Niski skip", "Kardio", "10x10 sek"),
+                Vjezba("Visoki skip", "Kardio", "10x10 sek"),
+                Vjezba("Trčanje po traci", "Kardio", "3x10 min"),
+                Vjezba("Stair master", "Kardio", "3x5 min"),
+                Vjezba("Bicikl", "Kardio", "3x5 min"),
+                Vjezba("Rowing machine", "Kardio", "3x10 min")
+            ]
+        }
+
+    def dohvati_trening(self, dio_tijela):
+        dio_tijela = dio_tijela.lower()
+
+        if dio_tijela in self.vjezbe:
+            rezultat = f"TRENING ZA {dio_tijela.upper()}\n\n"
+
+            for vjezba in self.vjezbe[dio_tijela]:
+                rezultat += vjezba.prikazi() + "\n"
+
+            return rezultat
+
+        else:
+            return "Nepostojeci dio tijela. Pokusaj: prsa, leđa, noge, ramena, ruke ili trbuh."
+
+
+# GUI APLIKACIJA
+
+trening = Trening()
+
+
+# Funkcija za prikaz treninga
+def prikazi_trening():
+    dio = entry_dio.get().strip()
+
+    if dio == "":
+        text_rezultat.delete(1.0, tk.END)
+        text_rezultat.insert(tk.END, "Upisi dio tijela.")
+        return
+
+    rezultat = trening.dohvati_trening(dio)
+
+    text_rezultat.delete(1.0, tk.END)
+    text_rezultat.insert(tk.END, rezultat)
+
+
+# Glavni prozor
+root = tk.Tk()
+root.title("Fitness aplikacija")
+root.geometry("600x500")
+root.configure(bg="#1e1e1e")
+
+
+# Naslov
+label_naslov = tk.Label(
+    root,
+    text="FITNESS TRENING APLIKACIJA",
+    font=("Arial", 18, "bold"),
+    bg="#1e1e1e",
+    fg="white"
+)
+label_naslov.pack(pady=15)
+
+
+# Upute
+label_upute = tk.Label(
+    root,
+    text="Upisi dio tijela: prsa, leđa, noge, ramena, ruke, trbuh ili kardio",
+    font=("Arial", 11),
+    bg="#1e1e1e",
+    fg="white"
+)
+label_upute.pack()
+
+
+# Input
+entry_dio = tk.Entry(root, font=("Arial", 14), width=30)
+entry_dio.pack(pady=10)
+
+
+# Gumb
+btn_prikazi = tk.Button(
+    root,
+    text="Prikazi trening",
+    font=("Arial", 12, "bold"),
+    bg="#4CAF50",
+    fg="white",
+    command=prikazi_trening
+)
+btn_prikazi.pack(pady=10)
+
+
+# Text box za rezultat
+text_rezultat = tk.Text(
+    root,
+    height=18,
+    width=60,
+    font=("Arial", 11)
+)
+text_rezultat.pack(pady=10)
+
+
+# Pokretanje aplikacije
+root.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
